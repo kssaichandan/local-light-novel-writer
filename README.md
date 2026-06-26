@@ -2,7 +2,7 @@
 
 Local Light Novel Writer is a web app for creating long light novels and web novels. It learns a reader's taste, builds a story bible, plans a full series in volumes and arcs, writes chapters one at a time, remembers continuity, lets the reader give feedback, and exports the finished novel.
 
-The app is private and local-first by design. On a personal computer it writes with Ollama by default and stores stories in a local SQLite database. It also supports optional bring-your-own-key cloud AI providers for users who want stronger models and accept that story text will be sent to that provider.
+The hosted version is meant as an online demo. Demo users can try the interface with a bring-your-own cloud AI key, but hosted free-tier story storage is temporary. Readers who want private writing, local Ollama generation, and durable local story storage should download the repo and run it on their own computer.
 
 ## Repo Name Suggestion
 
@@ -59,11 +59,24 @@ Optional cloud mode:
 
 Supported cloud routing includes OpenAI-compatible APIs, OpenRouter, Anthropic, Google Gemini, and Groq.
 
-## Important Hosting Note
+## Online Demo vs Local Use
 
-This project was originally built for private local use. If you deploy it live, anyone who can access the web UI can create, read, edit, export, or delete stories in the mounted database.
+Online demo:
 
-For a public deployment, put the app behind authentication or a private network. Render can host the web app, but Render does not provide local Ollama. For generation on Render, use the in-browser cloud key feature or point `OLLAMA_HOST` to your own reachable Ollama server.
+- Runs the web app so people can see and test the product.
+- Uses the in-browser "AI model" key manager for generation.
+- Requires each user to provide their own supported cloud provider key.
+- Does not run local Ollama on Render.
+- Uses temporary free-tier filesystem storage, so demo stories can disappear after restart, redeploy, or idle spin-down.
+- Should not be treated as permanent story storage.
+
+Local use:
+
+- Runs on the user's own computer.
+- Uses Ollama by default.
+- Stores stories locally in SQLite.
+- Keeps API keys out of the database.
+- Is the recommended mode for real writing projects, privacy, and long-term work.
 
 ## Tech Stack
 
@@ -150,7 +163,7 @@ Open:
 http://127.0.0.1:8000
 ```
 
-## Deploy on Render
+## Deploy the Online Demo on Render
 
 This repo includes `render.yaml`.
 
@@ -168,18 +181,20 @@ The Render start command is:
 python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
 ```
 
-The blueprint uses Render's `free` plan. Free deployments can run the app, but they do not include a persistent disk. The app stores stories in SQLite under `data/`, so stories created on Render free can disappear after redeploys, restarts, or instance replacement.
+The blueprint uses Render's `free` plan. This is intended for a public demo, not permanent hosted writing. Free deployments can run the app, but they do not include durable filesystem storage. The app stores stories in SQLite under `data/`, so demo stories can disappear after redeploys, restarts, idle spin-downs, or instance replacement.
 
 For durable hosted story storage later, upgrade the Render service and add a persistent disk mounted at `/opt/render/project/src/data`.
 
-## Render Generation Options
+## Online Demo Generation
 
-Render does not run Ollama inside this service. After deploying, generation has two practical paths:
+Render does not run Ollama inside this service. For the online demo, users should:
 
-1. Use the app's "AI model" key manager in the browser, save a provider key, and turn on "Write with AI model."
-2. Host Ollama somewhere reachable from Render and set `OLLAMA_HOST` in Render to that URL.
+1. Open the app.
+2. Use the app's "AI model" key manager in the browser.
+3. Save their own supported provider key.
+4. Turn on "Write with AI model."
 
-If neither is configured, the UI can load, but local model generation will show Ollama as unavailable.
+The demo is intentionally cloud-key based. Users who want Ollama should download and run the local version.
 
 ## Environment Variables
 

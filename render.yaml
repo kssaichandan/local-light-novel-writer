@@ -18,7 +18,3 @@ services:
         value: auto
       - key: LN_CLOUD_CTX_MULT
         value: "3"
-      # Render does not run Ollama for you. Leave this as-is if you will use
-      # browser-saved cloud keys, or point it at your own reachable Ollama host.
-      - key: OLLAMA_HOST
-        value: http://127.0.0.1:11434
