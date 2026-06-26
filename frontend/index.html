@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Write a full-length light novel on your own computer — private, local, yours." />
+  <title>Local Light Novel Writer</title>
+  <!-- favicon: a little book, inline so it works fully offline -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237b6cff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 4.5A2.5 2.5 0 0 1 7.5 2H20v20H7.5A2.5 2.5 0 0 1 5 19.5z'/%3E%3Cpath d='M5 19.5A2.5 2.5 0 0 1 7.5 17H20'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/fonts.css" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1 data-icon="book">Local Light Novel Writer<span class="tagline">· your private writing room</span></h1>
+    <div class="header-right">
+      <div id="status" class="status">checking Ollama…</div>
+      <button id="theme-toggle" class="ghost icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme"></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HOME: project list ============ -->
+    <section id="view-home" class="view">
+      <div class="hero">
+        <div class="hero-text">
+          <h2 class="hero-title" id="hero-title">Your stories</h2>
+          <p class="hero-sub" id="hero-sub">Write the long novel only you would — every chapter, entirely on your own machine.</p>
+        </div>
+        <div class="hero-actions">
+          <button id="btn-cloud-home" class="ghost" data-icon="cloud">AI model</button>
+          <button id="btn-surprise-home" class="ghost" data-icon="star">Surprise me</button>
+          <button id="btn-new" class="primary" data-icon="plus">New novel</button>
+        </div>
+      </div>
+      <div id="continue-box"></div>
+      <h3 id="library-h" class="section-h hidden">Library</h3>
+      <div id="project-list" class="cards"></div>
+    </section>
+
+    <!-- ============ SETUP WIZARD ============ -->
+    <section id="view-setup" class="view hidden">
+      <button class="link" data-go="home">← back to your library</button>
+      <h2>Create a novel</h2>
+      <p class="muted setup-sub">Two small steps, then the app does the heavy lifting — it plans the
+        world, the cast and the chapters around what <em>you</em> love to read.</p>
+
+      <!-- Step 1: basics + model -->
+      <div class="step" id="step-basics">
+        <h3><span class="step-n">1</span> The basics</h3>
+        <div class="field-grid">
+          <label class="span2">Working title
+            <input id="f-title" placeholder="just a working name — the story will earn its real one" />
+          </label>
+          <label>Model — local or your AI keys
+            <select id="f-model"></select>
+            <small id="f-model-note">runs on this computer, 100% private — a bigger model writes better, just slower</small>
+          </label>
+          <label>Start from a saved taste <span class="opt-tag">optional</span>
+            <select id="f-taste-profile"><option value="">— fresh: use step 2 below —</option></select>
+            <small>reuse a taste you saved from a past novel</small>
+          </label>
+          <label>Target chapters<input id="f-chapters" type="number" value="100" min="1" max="1000" /></label>
+          <label>Chapters per arc<input id="f-arc" type="number" value="10" min="3" max="30" /></label>
+        </div>
+        <div class="basics-foot">
+          <label class="auto"><input type="checkbox" id="f-intro" /> Add a Chapter 0 intro
+            <small>a spoiler-free welcome to the world &amp; characters, written for your story</small>
+          </label>
+          <button type="button" id="btn-manage-tastes" class="ghost small" data-icon="sliders">Manage saved tastes</button>
+        </div>
+      </div>
+
+      <!-- Step 2: taste (all three options) -->
+      <div class="step">
+        <h3><span class="step-n">2</span> Your taste</h3>
+        <p class="muted">Tell it what you love to read — pick whichever way feels easiest. There are no wrong answers, and nothing here is final.</p>
+
+        <div class="taste-tabs" id="taste-tabs">
+          <button type="button" class="taste-tab active" data-taste="quick"><b>Quick pick</b><span>choose from suggestions</span></button>
+          <button type="button" class="taste-tab" data-taste="words"><b>Your own words</b><span>just describe it</span></button>
+          <button type="button" class="taste-tab" data-taste="power"><b>Power mode</b><span>a big AI interviews you</span></button>
+        </div>
+
+        <div class="taste-pane" data-taste-pane="quick">
+          <p class="muted small">Pick from the suggestions or type anything you like. For the list fields, press Enter after each one to add several.</p>
+          <h4 class="q-group">The story</h4>
+          <div class="field-grid">
+            <label>Favorite genres
+              <input id="q-genres" list="dl-genres" placeholder="e.g. dark fantasy" />
+            </label>
+            <label>Tone
+              <input id="q-tone" list="dl-tone" placeholder="e.g. bittersweet" />
+            </label>
+            <label>Themes
+              <input id="q-themes" list="dl-themes" placeholder="e.g. found family" />
+            </label>
+            <label>Setting / world
+              <input id="q-setting" list="dl-setting" placeholder="e.g. cultivation world" />
+            </label>
+          </div>
+          <h4 class="q-group">Hero &amp; world</h4>
+          <div class="field-grid">
+            <label>Main character
+              <input id="q-mc" list="dl-mc" placeholder="e.g. clever underdog" />
+            </label>
+            <label>Power / progression
+              <input id="q-power" list="dl-power" placeholder="e.g. cultivation realms" />
+            </label>
+            <label>Antagonist
+              <input id="q-antag" list="dl-antag" placeholder="e.g. morally gray rival" />
+            </label>
+            <label>Point of view
+              <input id="q-pov" list="dl-pov" value="3rd person" />
+            </label>
+          </div>
+          <h4 class="q-group">The feel</h4>
+          <div class="field-grid">
+            <label>Pacing
+              <input id="q-pacing" list="dl-pacing" value="medium" />
+            </label>
+            <label>Humor
+              <input id="q-humor" list="dl-humor" placeholder="e.g. some humor" />
+            </label>
+            <label>Conflict scale
+              <input id="q-conflict" list="dl-conflict" placeholder="e.g. kingdom / political" />
+            </label>
+            <label>Ending
+              <input id="q-ending" list="dl-ending" placeholder="e.g. bittersweet" />
+            </label>
+            <label>Romance level
+              <input id="q-heat" list="dl-heat" value="none" />
+            </label>
+          </div>
+          <h4 class="q-group">Loves &amp; limits</h4>
+          <div class="field-grid">
+            <label>Tropes you love
+              <input id="q-love" list="dl-tropes" placeholder="e.g. weak to strong" />
+            </label>
+            <label>Tropes you hate
+              <input id="q-hate" list="dl-tropes-bad" placeholder="e.g. harem" />
+            </label>
+            <label class="span2">Anything to avoid
+              <input id="q-limits" placeholder="e.g. graphic violence — leave blank for none" />
+            </label>
+          </div>
+
+          <!-- suggestion lists — a short, curated set (you can still type anything you like) -->
+          <datalist id="dl-genres">
+            <option>fantasy</option><option>dark fantasy</option><option>isekai</option>
+            <option>romance</option><option>romantic comedy</option><option>action</option>
+            <option>adventure</option><option>mystery</option><option>sci-fi</option>
+            <option>slice of life</option><option>cultivation (xianxia)</option>
+            <option>litRPG / GameLit</option><option>progression fantasy</option>
+            <option>regression / second chance</option><option>villainess / otome</option>
+            <option>horror</option>
+          </datalist>
+          <datalist id="dl-tone">
+            <option>lighthearted</option><option>dark</option><option>grimdark</option>
+            <option>bittersweet</option><option>hopeful</option><option>cozy</option>
+            <option>epic</option><option>tense</option><option>mysterious</option>
+            <option>romantic</option>
+          </datalist>
+          <datalist id="dl-tropes">
+            <option>weak to strong</option><option>overpowered MC</option>
+            <option>hidden identity</option><option>found family</option>
+            <option>revenge</option><option>slow-burn romance</option>
+            <option>enemies to lovers</option><option>system / leveling</option>
+            <option>regression (second chance)</option><option>tournament arc</option>
+            <option>morally gray characters</option><option>kingdom building</option>
+          </datalist>
+          <datalist id="dl-tropes-bad">
+            <option>harem</option><option>love triangles</option><option>dense MC</option>
+            <option>plot armor</option><option>deus ex machina</option><option>NTR</option>
+            <option>excessive fanservice</option><option>info dumps</option>
+            <option>misunderstanding drama</option><option>none</option>
+          </datalist>
+          <datalist id="dl-mc">
+            <option>clever underdog</option><option>calm strategist</option>
+            <option>overpowered from start</option><option>weak-to-strong grinder</option>
+            <option>anti-hero</option><option>lazy genius</option>
+            <option>kindhearted healer</option><option>revenge-driven</option>
+            <option>villain protagonist</option><option>charismatic leader</option>
+          </datalist>
+          <datalist id="dl-pacing">
+            <option>slow burn</option><option>medium</option>
+            <option>fast / action-packed</option><option>episodic</option>
+          </datalist>
+          <datalist id="dl-heat">
+            <option>none</option><option>mild romance</option>
+            <option>moderate romance</option><option>spicy</option>
+          </datalist>
+          <datalist id="dl-pov">
+            <option>3rd person</option><option>3rd person limited</option>
+            <option>1st person</option><option>multiple POV</option>
+          </datalist>
+          <datalist id="dl-setting">
+            <option>medieval fantasy</option><option>cultivation world</option>
+            <option>magic academy</option><option>modern with hidden magic</option>
+            <option>dungeon / tower world</option><option>virtual reality / game world</option>
+            <option>post-apocalyptic</option><option>futuristic / sci-fi</option>
+            <option>urban fantasy</option><option>kingdom at war</option>
+          </datalist>
+          <datalist id="dl-themes">
+            <option>revenge</option><option>redemption</option><option>found family</option>
+            <option>power &amp; corruption</option><option>survival</option>
+            <option>coming of age</option><option>identity / self-discovery</option>
+            <option>cost of power</option><option>hope in darkness</option><option>freedom</option>
+          </datalist>
+          <datalist id="dl-power">
+            <option>magic</option><option>cultivation realms (qi)</option>
+            <option>litRPG stats / levels</option><option>classes &amp; skills</option>
+            <option>martial arts / aura</option><option>soul / spirit arts</option>
+            <option>technology / mecha</option><option>none</option>
+          </datalist>
+          <datalist id="dl-antag">
+            <option>clear evil villain</option><option>morally gray rival</option>
+            <option>corrupt empire / nobility</option><option>demon lord</option>
+            <option>ancient sealed evil</option><option>the system / world itself</option>
+            <option>fallen hero / former friend</option><option>rival genius / sect</option>
+          </datalist>
+          <datalist id="dl-ending">
+            <option>happy</option><option>bittersweet</option><option>hopeful</option>
+            <option>tragic</option><option>open-ended</option>
+          </datalist>
+          <datalist id="dl-humor">
+            <option>lots of comedy</option><option>some humor</option>
+            <option>mostly serious</option><option>no comedy</option>
+          </datalist>
+          <datalist id="dl-conflict">
+            <option>personal / small stakes</option><option>group / guild</option>
+            <option>kingdom / political</option><option>world-ending</option>
+          </datalist>
+        </div>
+
+        <div class="taste-pane hidden" data-taste-pane="words">
+          <p class="muted small">Just talk about what you love. Fill in only the lines that matter to you — plain words are perfect:</p>
+          <textarea id="q-free" rows="14" placeholder="Genres I love:&#10;Tone I want:&#10;Tropes I like:&#10;Tropes I hate:&#10;Hero / main-character type:&#10;Pacing (slow / medium / fast):&#10;Romance level (none / mild / spicy):&#10;Point of view (1st / 3rd person):&#10;Setting / world:&#10;Themes:&#10;Power / progression system:&#10;Antagonist type:&#10;Ending I want:&#10;Humor level:&#10;Conflict scale:&#10;Anything to avoid:&#10;Writing style I enjoy:"></textarea>
+        </div>
+
+        <div class="taste-pane hidden" data-taste-pane="power">
+          <p class="warn">⚠ This step uses an <b>outside AI</b> (ChatGPT / Claude) — your answers go to
+            it. The app itself never connects out. Skip this to stay 100% offline.</p>
+          <h4 class="q-group">Interview</h4>
+          <p class="muted small">1 · Copy this prompt → paste it into ChatGPT or Claude → answer its questions.</p>
+          <button type="button" id="btn-copy-prompt" class="ghost" data-icon="copy">Copy interview prompt</button>
+          <textarea id="q-interview-prompt" rows="3" readonly></textarea>
+          <label>2 · Paste the AI's final JSON profile here <small>(this overrides the questionnaire)</small>
+            <textarea id="q-paste-profile" rows="4" placeholder='{ "genres": ["isekai"], "tone": "..." , ... }'></textarea>
+          </label>
+
+          <h4 class="q-group">Or — the full plan</h4>
+          <p class="muted small">The big AI plans the whole novel (bible, volumes, arcs, every chapter);
+            your local model just writes it. Copy → paste into ChatGPT/Claude → paste its answer back.</p>
+          <button type="button" id="btn-copy-plan" class="ghost" data-icon="copy">Copy full-plan prompt</button>
+          <textarea id="q-plan-prompt" rows="3" readonly></textarea>
+          <label>Paste the AI's full plan JSON here <small>(skips local planning — writing starts at chapter 1)</small>
+            <textarea id="q-paste-plan" rows="4" placeholder='{ "bible": {...}, "volume_map": [...], "arc_map": [...], "outline": [...] }'></textarea>
+          </label>
+        </div>
+
+        <label class="premise-row">Premise idea <span class="opt-tag">optional</span>
+          <input id="q-premise" placeholder="a seed of an idea — e.g. “a librarian who can walk into books” — or leave blank and be surprised" />
+        </label>
+      </div>
+
+      <div class="build-row">
+        <button id="btn-build" class="primary big" data-icon="book">Build my story bible</button>
+        <button id="btn-surprise" class="ghost big" data-icon="star">Surprise me — fill the rest &amp; build</button>
+      </div>
+    </section>
+
+    <!-- ============ WORKSPACE ============ -->
+    <section id="view-work" class="view hidden">
+      <button class="link" data-go="home">← your library</button>
+      <div class="row-between">
+        <h2 id="work-title">…</h2>
+        <div class="menu-wrap">
+          <button id="btn-settings" class="ghost" data-icon="settings">Settings</button>
+          <div id="settings-menu" class="menu hidden">
+            <button id="btn-repair" class="menu-item" data-icon="wrench">Repair</button>
+            <button id="btn-save-taste" class="menu-item" data-icon="save">Save my taste</button>
+            <button id="btn-export" class="menu-item" data-icon="download">Export .md</button>
+            <button id="btn-export-epub" class="menu-item" data-icon="book">Export .epub</button>
+            <button id="btn-delete" class="menu-item danger" data-icon="trash">Delete novel</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="progress" class="progress"></div>
+
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="side-sec">
+            <div class="side-cap">Chapters</div>
+            <div class="chapter-jump">
+              <div class="cj" id="chapter-jump">
+                <button type="button" id="cj-btn" class="cj-btn" aria-haspopup="listbox" aria-expanded="false" title="Jump to any chapter">
+                  <span id="cj-label">Chapter 0</span>
+                  <svg class="ic cj-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <ul id="cj-menu" class="cj-menu hidden" role="listbox" aria-label="Jump to chapter"></ul>
+              </div>
+            </div>
+            <ol id="chapter-list" class="chapter-list"></ol>
+          </div>
+
+          <div class="side-sec">
+            <button id="btn-write-next" class="primary" data-icon="play">Write next chapter</button>
+            <button id="btn-stop" class="ghost danger hidden" data-icon="square">Stop</button>
+            <div id="gen-status" class="gen-status"></div>
+          </div>
+
+          <div class="side-sec controls">
+            <div class="side-cap">Writing options</div>
+            <label class="auto ai-toggle"><input type="checkbox" id="use-ai" /> Write with AI model
+              <small id="ai-hint">using your local model</small>
+            </label>
+            <label id="work-model-wrap">Local model
+              <select id="work-model"></select>
+              <small id="work-model-hint">used to write the next chapters</small>
+            </label>
+            <label class="auto"><input type="checkbox" id="auto-write" /> Auto-continue
+              <small>keeps writing chapter after chapter until you stop it</small>
+            </label>
+            <label class="auto"><input type="checkbox" id="use-scenes" /> Scene-by-scene
+              <small>steadier on small models, but slower</small>
+            </label>
+            <label>Words per chapter
+              <input id="f-words" type="number" value="1200" min="400" max="4000" />
+            </label>
+          </div>
+        </aside>
+
+        <article class="reader" id="reader" data-rtheme="sepia">
+          <div class="reader-bar">
+            <div class="seg" role="group" aria-label="Navigate chapters">
+              <button id="prev-ch" title="Previous chapter" data-icon="chevron-left">Prev</button>
+              <button id="next-ch" title="Next chapter">Next <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            </div>
+            <div class="seg" role="group" aria-label="Reading theme">
+              <select id="theme-select" title="Reading colour theme">
+                <optgroup label="Light">
+                  <option value="light">Light</option>
+                  <option value="sepia">Sepia</option>
+                  <option value="cream">Cream</option>
+                  <option value="paper">Paper</option>
+                  <option value="mint">Mint</option>
+                  <option value="rose">Rose</option>
+                  <option value="sky">Sky blue</option>
+                  <option value="solar-light">Solarized light</option>
+                </optgroup>
+                <optgroup label="Dark">
+                  <option value="dark">Dark</option>
+                  <option value="gray">Gray</option>
+                  <option value="slate">Slate</option>
+                  <option value="midnight">Midnight</option>
+                  <option value="forest">Forest</option>
+                  <option value="night">Night blue</option>
+                  <option value="mocha">Mocha</option>
+                  <option value="nord">Nord</option>
+                  <option value="dracula">Dracula</option>
+                  <option value="solar-dark">Solarized dark</option>
+                  <option value="plum">Plum</option>
+                  <option value="contrast">High-contrast</option>
+                </optgroup>
+              </select>
+              <button id="btn-custom-theme" class="icon-btn" title="Custom colours" aria-label="Custom reader colours" data-icon="palette"></button>
+            </div>
+            <div class="seg" role="group" aria-label="Font">
+              <select id="font-family" title="Font style">
+                <optgroup label="System (always available)">
+                  <option value="serif">Serif</option>
+                  <option value="sans">Sans-serif</option>
+                  <option value="palatino">Palatino</option>
+                  <option value="easy">Easy-read</option>
+                </optgroup>
+                <optgroup label="Book serif (bundled)">
+                  <option value="literata">Literata</option>
+                  <option value="lora">Lora</option>
+                  <option value="merriweather">Merriweather</option>
+                  <option value="eb-garamond">EB Garamond</option>
+                  <option value="bitter">Bitter</option>
+                  <option value="source-serif">Source Serif</option>
+                  <option value="pt-serif">PT Serif</option>
+                  <option value="libre-baskerville">Libre Baskerville</option>
+                  <option value="crimson">Crimson Pro</option>
+                  <option value="vollkorn">Vollkorn</option>
+                  <option value="spectral">Spectral</option>
+                  <option value="alegreya">Alegreya</option>
+                  <option value="noto-serif">Noto Serif</option>
+                </optgroup>
+                <optgroup label="Sans &amp; accessible (bundled)">
+                  <option value="inter">Inter</option>
+                  <option value="open-sans">Open Sans</option>
+                  <option value="atkinson">Atkinson Hyperlegible</option>
+                  <option value="lexend">Lexend</option>
+                </optgroup>
+              </select>
+              <button id="font-dec" title="Smaller text">A−</button>
+              <button id="font-inc" title="Larger text">A＋</button>
+            </div>
+            <div id="custom-theme-panel" class="custom-theme hidden">
+              <label>Background <input type="color" id="cc-bg" value="#f4ecd8" /></label>
+              <label>Text <input type="color" id="cc-ink" value="#4a3a28" /></label>
+              <span id="cc-warn" class="cc-warn"></span>
+            </div>
+          </div>
+          <div class="reader-page" id="reader-page">
+            <div id="reader-meta" class="reader-chnum"></div>
+            <h2 id="reader-title" class="reader-chtitle"></h2>
+            <div id="reader-body" class="prose"></div>
+          </div>
+
+          <!-- in-place editor (opens on demand from ✏️ Edit) -->
+          <div id="edit-panel" class="edit-panel hidden">
+            <input id="edit-title" class="edit-title" placeholder="Chapter title" />
+            <textarea id="edit-area" class="edit-area" spellcheck="true"></textarea>
+            <div class="edit-actions">
+              <span id="edit-status" class="gen-status"></span>
+              <button id="edit-cancel" class="ghost">Cancel</button>
+              <button id="edit-save" class="primary" data-icon="save">Save changes</button>
+            </div>
+          </div>
+
+          <div class="reader-foot">
+            <span id="taste-confidence" class="muted"></span>
+            <span class="foot-btns">
+              <button id="btn-tts" class="ghost" data-icon="volume" title="Read this chapter aloud (uses your browser, stays offline)">Read aloud</button>
+              <button id="btn-edit" class="ghost" data-icon="edit" title="Edit this chapter's text yourself">Edit</button>
+              <button id="btn-regen" class="ghost" data-icon="refresh" title="Redo this chapter in the same style — a faithful fix, does NOT apply taste/feedback changes">Regenerate</button>
+              <button id="btn-redo-taste" class="ghost" data-icon="star" title="Rewrite THIS chapter using your learned taste/feedback — one click, no form. (Plain Regenerate keeps the same style; this applies what you've taught it.)">Rewrite to my taste</button>
+              <button id="btn-feedback" class="primary" data-icon="message">Give feedback</button>
+            </span>
+          </div>
+
+          <!-- detailed feedback form (opens on demand) -->
+          <div id="feedback-panel" class="feedback-panel hidden">
+            <div class="fb-head">
+              <h3>Rate this chapter <small class="muted">— teaches the app your taste</small></h3>
+              <span id="fb-summary" class="muted small"></span>
+            </div>
+
+            <div class="fb-tabs" id="fb-tabs">
+              <button class="fb-tab active" data-tab="quick" type="button" data-icon="star">Quick</button>
+              <button class="fb-tab" data-tab="craft" type="button" data-icon="sliders">Craft</button>
+              <button class="fb-tab" data-tab="likes" type="button" data-icon="message">Likes &amp; dislikes</button>
+            </div>
+
+            <!-- QUICK -->
+            <div class="fb-pane" data-pane="quick">
+              <div class="fb-overall" id="fb-overall">
+                <button class="fb-ov" data-v="loved" type="button">😍<small>Loved</small></button>
+                <button class="fb-ov" data-v="good" type="button">🙂<small>Good</small></button>
+                <button class="fb-ov" data-v="ok" type="button">😐<small>Ok</small></button>
+                <button class="fb-ov" data-v="meh" type="button">🙁<small>Meh</small></button>
+                <button class="fb-ov" data-v="not_it" type="button">😞<small>Not it</small></button>
+              </div>
+              <label>Want MORE of <input id="fb-more" placeholder="type & Enter — e.g. crafting scenes, dungeon fights" /></label>
+              <label>Want LESS of <input id="fb-less" placeholder="type & Enter — e.g. long travel scenes" /></label>
+              <label>One line to make it better <textarea id="fb-note" rows="2" placeholder="say anything in your own words…"></textarea></label>
+            </div>
+
+            <!-- CRAFT (sliders) -->
+            <div class="fb-pane hidden" data-pane="craft">
+              <p class="muted small">Leave a dial on “Just right” if it's already good. Only the ones you change count.</p>
+              <div id="fb-craft"></div>
+            </div>
+
+            <!-- LIKES & DISLIKES -->
+            <div class="fb-pane hidden" data-pane="likes">
+              <h4 class="fb-group">Liked</h4>
+              <label>Loved this chapter <input id="fb-loved" placeholder="e.g. the material-fusion crafting" /></label>
+              <label>Favorite character(s) <input id="fb-fav" placeholder="e.g. Kael, Lyra" /></label>
+              <label>Best part <input id="fb-best" placeholder="the single best moment (optional)" /></label>
+              <h4 class="fb-group">Change / avoid</h4>
+              <label>Please DON'T do / avoid completely <input id="fb-avoid" placeholder="e.g. no sudden betrayals, no harem" /></label>
+              <label>Character(s) you didn't like <input id="fb-dislike-char" placeholder="optional" /></label>
+              <label>Anything confusing? <input id="fb-confusing" placeholder="optional — helps keep it clear" /></label>
+              <label>Worst part <input id="fb-worst" placeholder="the weakest moment (optional)" /></label>
+              <h4 class="fb-group">Tags</h4>
+              <label>Tag this chapter <input id="fb-tags" placeholder="e.g. great fight, good twist, filler" /></label>
+            </div>
+
+            <div class="fb-actions">
+              <button id="fb-cancel" class="ghost" type="button">Cancel</button>
+              <button id="fb-submit" class="primary" type="button" data-icon="save">Save feedback</button>
+              <button id="fb-submit-regen" class="ghost" type="button" data-icon="refresh" title="Save your notes AND rewrite this chapter applying them">Save &amp; rewrite this chapter</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <details id="cast-box" class="biblebox">
+        <summary>Characters &amp; world</summary>
+        <div id="cast-content" class="cast-content"></div>
+      </details>
+
+      <details id="bible-box" class="biblebox">
+        <summary>Story bible, arc map & outline</summary>
+        <pre id="bible-json"></pre>
+      </details>
+    </section>
+  </main>
+
+  <!-- Cloud/Local switch — reachable from the workspace Settings while reading -->
+  <div id="cloud-modal" class="modal hidden">
+    <div class="modal-card">
+      <h3 data-icon="cloud">AI models — your API keys</h3>
+      <p class="muted small">Save as many keys as you like and <b>pick which one to use</b>. Keys are
+        stored <b>only in this browser</b>, never on disk. When AI is on, that novel's text is sent
+        to the chosen provider. Turn AI on/off with the <b>Write with AI model</b> toggle in a novel.</p>
+      <div id="key-list" class="key-list"></div>
+      <div id="m-key-status" class="muted small"></div>
+      <hr class="sep" />
+      <h4 class="q-group">Add a key</h4>
+      <div class="grid2">
+        <label>Name <input id="m-key-name" autocomplete="off" placeholder="e.g. My OpenAI" /></label>
+        <label>Provider
+          <select id="m-provider">
+            <option value="">Auto-detect from key</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="groq">Groq</option>
+          </select>
+        </label>
+      </div>
+      <label>API key
+        <input id="m-api-key" type="password" autocomplete="off" spellcheck="false"
+               placeholder="sk-… · sk-or-… · sk-ant-… · gsk_… · AIza…" />
+      </label>
+      <label>Model <span class="opt-tag">optional</span>
+        <input id="m-api-model" autocomplete="off" spellcheck="false"
+               placeholder="e.g. gpt-4o-mini · openrouter/auto · claude-sonnet-4-6" />
+      </label>
+      <div class="cloud-row">
+        <button id="m-close" type="button" class="ghost">Close</button>
+        <button id="m-cancel-edit" type="button" class="ghost hidden">Cancel edit</button>
+        <button id="m-add-key" type="button" class="primary" data-icon="plus">Save key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved-tastes manager — rename / delete the tastes you saved -->
+  <div id="tastes-modal" class="modal hidden">
+    <div class="modal-card">
+      <h3 data-icon="save">Saved tastes</h3>
+      <p class="muted small">These are the tastes you saved from past novels. <b>Rename</b> or
+        <b>delete</b> any of them here. Deleting one does <b>not</b> change novels you already made
+        from it.</p>
+      <div id="tastes-list" class="key-list"></div>
+      <div id="tastes-status" class="muted small"></div>
+      <div class="cloud-row">
+        <button id="tastes-close" type="button" class="ghost">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

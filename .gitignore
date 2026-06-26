@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# App data (user stories live here - never commit)
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Exports
+exports/
+
+# Private project notes and local working history
+docs/private/
+TELL-CLAUDE.md
+PREFERENCES.md
+MUST_BE_FOLLOWED_ALWAYS.md
+server.log
+*.log
+
+# Local backups / generated scratch files
+frontend/_backup_*/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

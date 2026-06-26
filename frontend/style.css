@@ -1,0 +1,645 @@
+:root {
+  /* Dark theme (default) — calm / premium */
+  --bg: #0b0c10;
+  --panel: #14161d;
+  --panel2: #1b1e27;
+  --ink: #e8e9ef;
+  --muted: #949aa8;
+  --accent: #7b6cff;
+  --accent2: #a89cff;
+  --warm: #e6a866;            /* cozy-library warmth (heroes, covers, accents) */
+  --on-accent: #ffffff;
+  --danger: #f1607a;
+  --ok: #5fd28a;
+  --border: #232733;
+  --radius: 14px;             /* cards / panels */
+  --radius-sm: 9px;           /* controls */
+  --shadow: 0 16px 44px rgba(0, 0, 0, .50);
+  --shadow-soft: 0 4px 18px rgba(0, 0, 0, .34);
+  --font-display: "Spectral", "Literata", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  /* Light theme — warm paper / cozy library */
+  --bg: #f5f1e8;
+  --panel: #fffdf8;
+  --panel2: #efe9dd;
+  --ink: #2a2620;
+  --muted: #6e6760;
+  --accent: #5b4ff0;
+  --accent2: #6d5cf5;
+  --warm: #b9762e;
+  --on-accent: #ffffff;
+  --danger: #d4334d;
+  --ok: #1a8f55;
+  --border: #e6ddcd;
+  --shadow: 0 18px 44px rgba(60, 45, 25, .13);
+  --shadow-soft: 0 4px 16px rgba(60, 45, 25, .08);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* a whisper of warm/cool depth behind everything (calm, premium — no motion) */
+  background:
+    radial-gradient(1200px 560px at 78% -8%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    radial-gradient(900px 480px at 0% 0%, color-mix(in srgb, var(--warm) 9%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .2s ease, color .2s ease;
+}
+/* literary serif for the big titles; UI sans stays for controls */
+h1, h2, h3, .hero-title, .continue-card h3, .card h4, .reader-chtitle {
+  font-family: var(--font-display);
+  letter-spacing: .1px;
+}
+/* slim, theme-matched scrollbars everywhere (page, reader/chapter area, etc.) */
+html { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; border: 2px solid transparent; }
+/* gentle, consistent transitions + visible keyboard focus (accessibility) */
+button, input, select, textarea, .card, .step, .continue-card, .key-row, .menu, .modal-card {
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* line-icon system (inline SVG, currentColor — stays offline) */
+.ic { width: 1.05em; height: 1.05em; flex: none; stroke: currentColor; fill: none;
+  stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.16em; }
+.icon-btn { padding: 8px; line-height: 0; }
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 26px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+header h1 { font-size: 1.18rem; font-weight: 600; margin: 0; display: inline-flex; align-items: center; gap: .55em; }
+header h1 .ic { width: 1.15em; height: 1.15em; color: var(--accent); }
+header .tagline { font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: .8rem; color: var(--muted); margin-left: .35em; letter-spacing: .02em; }
+@media (max-width: 720px) { header .tagline { display: none; } }
+.header-right { display: inline-flex; align-items: center; gap: 14px; }
+.status { font-size: .8rem; color: var(--muted); }
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--danger); }
+main { max-width: 1100px; margin: 0 auto; padding: 22px; }
+
+h2 { margin-top: .2em; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+.row-between { display: flex; align-items: center; justify-content: space-between; }
+
+/* gentle entrance: each view drifts up softly when it appears (calm, not flashy) */
+@keyframes view-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.view { animation: view-in .28s ease both; }
+@keyframes rise-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+.cards .card, .continue-card, .empty-lib { animation: rise-in .32s ease backwards; }
+.cards .card:nth-child(2) { animation-delay: .04s; }
+.cards .card:nth-child(3) { animation-delay: .08s; }
+.cards .card:nth-child(4) { animation-delay: .12s; }
+.cards .card:nth-child(5) { animation-delay: .16s; }
+.cards .card:nth-child(n+6) { animation-delay: .2s; }
+/* if the reader prefers less motion, keep everything still */
+@media (prefers-reduced-motion: reduce) {
+  .view, .cards .card, .continue-card, .empty-lib { animation: none; }
+  button.primary:hover, button.ghost:hover, button.big:hover, .card:hover, .continue-card:hover { transform: none; }
+}
+
+button {
+  font: inherit; cursor: pointer; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--panel2); color: var(--ink); padding: 9px 15px; font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+}
+button:hover { border-color: var(--accent); }
+/* gentle lift only on the prominent standalone buttons (not menu items / segmented controls) */
+button.primary:hover, button.ghost:hover, button.big:hover { transform: translateY(-1px); }
+button.primary:active, button.ghost:active, button.big:active { transform: translateY(0); }
+button.primary {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--warm)));
+  border-color: transparent; color: var(--on-accent); box-shadow: var(--shadow-soft);
+}
+button.primary:hover { filter: brightness(1.06); border-color: transparent; }
+button.big { font-size: 1.05rem; padding: 12px 20px; margin-top: 14px; }
+.build-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.ghost { background: transparent; }
+button.danger { color: var(--danger); }
+button.link { background: none; border: none; color: var(--accent2); padding: 4px 0; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+label { display: block; margin: 10px 0; font-size: .9rem; color: var(--muted); }
+label small { display: block; font-size: .75rem; margin-top: 3px; }
+input, select, textarea {
+  width: 100%; margin-top: 4px; padding: 9px 11px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--panel); color: var(--ink); font: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+/* checkboxes/radios must NOT stretch to full width like text inputs */
+input[type="checkbox"], input[type="radio"] {
+  width: auto; margin: 0 7px 0 0; accent-color: var(--accent); vertical-align: middle;
+}
+/* an inline checkbox row (e.g. "Add a Chapter 0 intro", "auto-continue") */
+label.auto { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 0; color: var(--ink); font-weight: 500; }
+label.auto small { width: 100%; margin: 2px 0 0 24px; color: var(--muted); font-weight: 400; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+
+/* multi-select chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px;
+  padding: 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); }
+.chips input { border: none; background: transparent; flex: 1; min-width: 120px; margin: 0; padding: 4px 6px; }
+.chip { display: inline-flex; align-items: center; gap: 2px; background: var(--accent); color: #fff;
+  border-radius: 14px; padding: 3px 4px 3px 10px; font-size: .82rem; }
+.chip button { background: transparent; border: none; color: #fff; font-size: 1.05rem; line-height: 1;
+  padding: 0 4px; cursor: pointer; }
+.chip button:hover { color: #ffd; }
+
+.step { background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px 22px; margin: 18px 0; box-shadow: var(--shadow); }
+details { margin: 10px 0; }
+summary { cursor: pointer; padding: 6px 0; }
+.warn { background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid var(--danger); color: var(--danger);
+  border-radius: 8px; padding: 9px 12px; font-size: .85rem; }
+.warn b { color: var(--danger); }
+
+/* ===== Setup wizard (Create a novel) — professional redesign ===== */
+#view-setup { max-width: 880px; margin: 0 auto; }
+#view-setup > h2 { font-size: 1.55rem; margin: 6px 0 2px; }
+.setup-sub { margin: 4px 0 0; max-width: 58ch; }
+.setup-sub em { font-style: italic; }
+.step h3 {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 16px; font-size: 1.08rem; letter-spacing: .2px;
+}
+.step h3 .step-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 27px; height: 27px; border-radius: 50%; flex: none;
+  background: var(--accent); color: var(--on-accent);
+  font-size: .85rem; font-weight: 700;
+}
+.step label { color: var(--ink); font-weight: 500; }
+.step label small { color: var(--muted); font-weight: 400; }
+
+/* --- the rebuilt setup page --- */
+/* a tidy two-column field grid (collapses on small screens) */
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.field-grid .span2 { grid-column: 1 / -1; }
+/* little "optional" tag next to a label */
+.opt-tag { display: inline-block; font-size: .66rem; font-weight: 600; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--muted); border: 1px solid var(--border);
+  border-radius: 20px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
+/* small uppercase group headings inside a step ("The story", "Hero & world", …) */
+.q-group { margin: 22px 0 4px; font-size: .74rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent2);
+  border-bottom: 1px solid var(--border); padding-bottom: 7px; }
+.q-group:first-of-type { margin-top: 14px; }
+/* the three "how do you want to tell us" selector cards */
+.taste-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 8px; }
+.taste-tab { flex-direction: column; align-items: flex-start; gap: 3px; text-align: left;
+  padding: 13px 15px; border-radius: 12px; background: var(--panel2); }
+.taste-tab b { font-weight: 600; }
+.taste-tab span { font-size: .78rem; color: var(--muted); font-weight: 400; }
+.taste-tab.active { border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  box-shadow: 0 0 0 1px var(--accent) inset; }
+.taste-tab.active span { color: inherit; opacity: .75; }
+.taste-pane { padding-top: 2px; }
+/* footer row of the Basics card (Chapter 0 toggle + manage tastes) */
+.basics-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.basics-foot .auto { margin: 0; flex: 1; min-width: 240px; }
+/* premise gets its own quiet row at the bottom of the taste step */
+.premise-row { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border); }
+.build-row { margin-top: 4px; }
+@media (max-width: 640px) { .taste-tabs, .field-grid { grid-template-columns: 1fr; } }
+
+/* ===== Home hero ===== */
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+  flex-wrap: wrap; margin: 14px 0 8px; }
+.hero-title { font-size: 2.4rem; line-height: 1.05; margin: 0; font-weight: 600;
+  letter-spacing: -.4px; }
+.hero-sub { margin: 8px 0 0; color: var(--muted); font-size: 1rem; max-width: 46ch; }
+.hero-actions { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.section-h { font-size: 1.15rem; margin: 26px 0 2px; color: var(--ink); }
+.section-h .muted { font-weight: 400; font-size: .85rem; }
+
+/* ===== Library — novels as real little books (spine, frame, page edge) ===== */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; margin-top: 14px; }
+.card { position: relative; display: flex; flex-direction: column; overflow: hidden; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px var(--radius) var(--radius) 6px;
+  box-shadow: var(--shadow-soft); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.card:hover { transform: translateY(-4px) rotate(-.3deg); border-color: var(--accent); box-shadow: var(--shadow); }
+.card .cover { position: relative; min-height: 158px; padding: 18px 18px 16px;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  /* the book's spine: a soft dark fold on the left with a thin highlight beside it */
+  box-shadow: inset 14px 0 18px -12px rgba(0,0,0,.55), inset 17px 0 0 -16px rgba(255,255,255,.28); }
+.card .cover::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.30)); }
+/* a classic double-rule frame, like an old hardback */
+.card .cover::before { content: ""; position: absolute; inset: 9px; z-index: 1;
+  border: 1px solid rgba(255,255,255,.38); border-radius: 3px;
+  box-shadow: 0 0 0 3px transparent, inset 0 0 0 2.5px rgba(255,255,255,0), 0 0 0 0 transparent;
+  outline: 1px solid rgba(255,255,255,.16); outline-offset: 3px; pointer-events: none; }
+.card .cover h4 { position: relative; z-index: 1; margin: 0; color: #fff; font-size: 1.16rem;
+  line-height: 1.3; font-weight: 600; text-shadow: 0 1px 10px rgba(0,0,0,.45); max-width: 100%;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.card .body { padding: 12px 15px 15px; display: flex; flex-direction: column; gap: 9px; }
+.card .meta { font-size: .8rem; color: var(--muted); }
+.card .mini-bar { height: 5px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.card .mini-bar > i { display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.card-del { position: absolute; top: 9px; right: 9px; z-index: 2; background: rgba(0,0,0,.32);
+  border: none; color: #fff; font-size: 1rem; padding: 5px 6px; line-height: 0; border-radius: 8px;
+  opacity: 0; backdrop-filter: blur(2px); }
+.card:hover .card-del { opacity: .85; }
+.card-del:hover { opacity: 1; background: var(--danger); color: #fff; }
+.badge { display: inline-flex; align-items: center; font-size: .68rem; letter-spacing: .03em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent2);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* empty library state */
+.empty-lib { text-align: center; padding: 60px 20px 56px; border: 1px dashed var(--border);
+  border-radius: var(--radius); background: color-mix(in srgb, var(--panel) 60%, transparent);
+  margin-top: 14px; }
+.empty-lib .ic { width: 42px; height: 42px; color: var(--warm); opacity: .85; }
+.empty-lib h3 { margin: 14px 0 6px; font-size: 1.4rem; }
+.empty-lib p { margin: 0 auto 18px; color: var(--muted); max-width: 44ch; }
+
+/* ☁ cloud model API-key box (setup) */
+.small { font-size: .8rem; }
+.cloud-key { margin: 6px 0 4px; border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 12px; background: var(--panel); }
+.cloud-key > summary { cursor: pointer; color: var(--accent2); font-size: .9rem; }
+.cloud-key label { display: block; margin-top: 10px; }
+.cloud-key input { width: 100%; }
+.cloud-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  margin-top: 16px; flex-wrap: wrap; }
+.cloud-row .danger { color: var(--danger); }
+
+/* ✨ Write-with-AI toggle (sidebar) */
+.ai-toggle { font-weight: 600; }
+.ai-toggle #ai-hint { display: block; font-weight: 400; font-size: .76rem; color: var(--muted);
+  margin-left: 42px; cursor: pointer; }
+/* local-model picker (sidebar) — dims when cloud AI is on */
+#work-model-wrap.dim { opacity: .5; }
+#work-model-hint { color: var(--muted); }
+
+/* modal (cloud/local switch from the workspace) */
+.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center;
+  justify-content: center; background: rgba(0,0,0,.5); padding: 16px;
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.modal.hidden { display: none; }
+.modal-card { width: min(560px, 100%); background: var(--panel); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 24px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  max-height: calc(100vh - 48px); overflow-y: auto; }
+.modal-card h3 { margin: 0 0 8px; font-size: 1.25rem; display: flex; align-items: center; gap: .5em; }
+.modal-card h3 .ic { color: var(--accent); }
+.modal-card h4 { margin: 8px 0 4px; }
+.modal-card .grid2 { gap: 0 14px; }
+.modal-card label { display: block; margin-top: 12px; }
+.modal-card input { width: 100%; }
+.modal-card .sep { border: none; border-top: 1px solid var(--border); margin: 16px 0 4px; }
+.key-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0; }
+.key-row { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel2); }
+.key-row.active { border-color: var(--accent); }
+.key-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.key-actions .use-key.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.key-actions .danger { color: var(--danger); }
+
+/* ⚙ Settings dropdown (workspace header) */
+.menu-wrap { position: relative; display: inline-block; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  display: flex; flex-direction: column; min-width: 180px; padding: 6px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.menu.hidden { display: none; }
+.menu-item { width: 100%; text-align: left; justify-content: flex-start; background: transparent; border: none;
+  border-radius: 7px; padding: 9px 12px; font-size: .92rem; }
+.menu-item .ic { color: var(--muted); }
+.menu-item:hover { background: var(--panel2); border-color: transparent; }
+.menu-item.danger { color: var(--danger); }
+.menu-item.danger:hover { background: rgba(255,90,90,.12); }
+
+/* "Continue writing" panel (home, top) */
+.continue-card { position: relative; overflow: hidden; margin-top: 18px; padding: 24px 26px;
+  border-radius: var(--radius); cursor: pointer; box-shadow: var(--shadow-soft);
+  background:
+    radial-gradient(600px 300px at 100% 0%, color-mix(in srgb, var(--warm) 22%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, var(--panel)), var(--panel));
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.continue-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+.continue-label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 6px; display: inline-flex; align-items: center; gap: 6px; }
+.continue-card h3 { margin: 0 0 6px; font-size: 1.7rem; line-height: 1.1; }
+.continue-card .meta { font-size: .84rem; color: var(--muted); }
+.continue-card .progress { height: 8px; background: color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 5px; overflow: hidden; margin: 14px 0 18px; max-width: 520px; }
+.continue-card .progress-fill { height: 100%; border-radius: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.continue-btn { font-size: .98rem; }
+
+/* workspace */
+.progress { font-size: .85rem; color: var(--muted); margin: 8px 0 16px; }
+.bar { height: 6px; background: var(--panel2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.workspace { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+.sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  position: sticky; top: 80px; max-height: calc(100vh - 96px); overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+/* slim, theme-matched scrollbar (only when the window is too short to fit everything) */
+.sidebar::-webkit-scrollbar { width: 7px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+/* the rebuilt sidebar: clear sections divided by soft rules, with small uppercase captions */
+.side-sec { display: grid; gap: 9px; }
+.side-sec + .side-sec { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.side-cap { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); }
+/* Jump-to-any-chapter custom dropdown: closed box shows "Chapter N", open list shows full titles */
+.chapter-jump { margin: 0; font-size: .78rem; color: var(--muted); }
+.cj { position: relative; }
+.cj-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 12px; border-radius: 9px; background: var(--panel2); border: 1px solid var(--border);
+  color: var(--ink); font-weight: 500; font-size: .9rem; }
+.cj-btn:hover, .cj-btn[aria-expanded="true"] { border-color: var(--accent); }
+.cj-btn #cj-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cj-caret { width: 1.1em; height: 1.1em; color: var(--muted); flex: none; transition: transform .15s ease; }
+.cj-btn[aria-expanded="true"] .cj-caret { transform: rotate(180deg); }
+.cj-menu { list-style: none; margin: 6px 0 0; padding: 6px; position: absolute; left: 0; right: 0; top: 100%;
+  z-index: 30; max-height: 264px; overflow-y: auto; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow); }
+.cj-menu li { padding: 8px 10px; border-radius: 7px; cursor: pointer; font-size: .88rem; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cj-menu li:hover { background: var(--panel2); }
+.cj-menu li.sel { color: var(--accent2); font-weight: 600; }
+.cj-menu li.todo { color: var(--muted); font-style: italic; }
+/* chapter nav as a little timeline: previous / current / next, joined by a thread of dots */
+.chapter-list { padding-left: 0; margin: 2px 0 0; list-style: none; display: grid; gap: 2px; }
+.chapter-list li { cursor: pointer; display: flex; align-items: center; overflow: hidden;
+  position: relative; padding: 8px 10px 8px 30px; border-radius: 9px; font-size: .9rem;
+  border: none; background: transparent; }
+.chapter-list li::before { content: ""; position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); width: 8px; height: 8px; border-radius: 50%;
+  border: 2px solid var(--muted); background: var(--panel); box-sizing: border-box; }
+/* the thread connecting the dots */
+.chapter-list li:not(:last-child)::after { content: ""; position: absolute; left: 13.25px;
+  top: calc(50% + 7px); height: calc(50% + 12px); width: 1.5px; background: var(--border); }
+.chapter-list li:hover { background: var(--panel2); }
+.chapter-list li.active { background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--ink); font-weight: 600; }
+.chapter-list li.active::before { background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.chapter-list li.todo { color: var(--muted); font-style: italic; }
+.chapter-list li.todo::before { border-style: dashed; border-width: 1.5px; }
+.chapter-list li.writing { color: var(--accent2); font-style: italic; cursor: default; }
+.chapter-list li.writing::before { border-color: var(--accent2); animation: pulse-dot 1.2s ease infinite; }
+@keyframes pulse-dot { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); } }
+.chapter-list li.intro { color: var(--accent2); }
+/* min-width:0 lets the title actually ellipsis instead of overflowing the row edge */
+.ch-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.controls > label { margin: 0; }   /* let the grid gap own the spacing — keeps the panel compact */
+.controls .auto { display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.gen-status { font-size: .82rem; color: var(--accent2); min-height: 1em; }
+
+/* checkbox rows (label.auto) become proper little toggle switches */
+label.auto > input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; width: 34px; height: 20px; flex: none;
+  margin: 0; border-radius: 20px; background: var(--panel2); border: 1px solid var(--border);
+  position: relative; cursor: pointer; transition: background-color .15s ease, border-color .15s ease;
+}
+label.auto > input[type="checkbox"]::before {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--muted); transition: transform .15s ease, background-color .15s ease;
+}
+label.auto > input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+label.auto > input[type="checkbox"]:checked::before { transform: translateX(14px); background: #fff; }
+label.auto { gap: 8px; }
+label.auto small { margin-left: 42px; }   /* hint text aligns under the label, past the switch */
+
+/* ---- Reader: e-reader style with themes + adjustable font ---- */
+.reader {
+  border: 1px solid var(--border); border-radius: 12px; min-height: 360px; overflow: hidden;
+  --reader-fs: 1.15rem;
+  --page-bg: #f4ecd8; --page-ink: #4a3a28; --page-soft: #9b8a6f;
+}
+.reader[data-rtheme="light"]    { --page-bg: #faf9f7; --page-ink: #25221e; --page-soft: #8a857c; }
+.reader[data-rtheme="sepia"]    { --page-bg: #f4ecd8; --page-ink: #4a3a28; --page-soft: #9b8a6f; }
+.reader[data-rtheme="dark"]     { --page-bg: #14161b; --page-ink: #d6d1c4; --page-soft: #7e8794; }
+.reader[data-rtheme="gray"]     { --page-bg: #3a3d42; --page-ink: #e3e1dc; --page-soft: #a0a6ad; }
+.reader[data-rtheme="forest"]   { --page-bg: #18271e; --page-ink: #d9e6d3; --page-soft: #82a08a; }
+.reader[data-rtheme="night"]    { --page-bg: #0f1b2d; --page-ink: #cdd9e8; --page-soft: #6f8499; }
+.reader[data-rtheme="contrast"] { --page-bg: #000000; --page-ink: #ffffff; --page-soft: #bfbfbf; }
+.reader[data-rtheme="cream"]       { --page-bg: #fbf6ea; --page-ink: #3b3528; --page-soft: #a99c80; }
+.reader[data-rtheme="paper"]       { --page-bg: #eae6dc; --page-ink: #33302a; --page-soft: #8f887b; }
+.reader[data-rtheme="mint"]        { --page-bg: #e6f2ea; --page-ink: #1f3a2c; --page-soft: #6f9a82; }
+.reader[data-rtheme="rose"]        { --page-bg: #f7eaea; --page-ink: #432a2a; --page-soft: #a87f7f; }
+.reader[data-rtheme="sky"]         { --page-bg: #e9f0f7; --page-ink: #1f3247; --page-soft: #6f8499; }
+.reader[data-rtheme="solar-light"] { --page-bg: #fdf6e3; --page-ink: #586e75; --page-soft: #93a1a1; }
+.reader[data-rtheme="slate"]       { --page-bg: #1e242b; --page-ink: #cdd6df; --page-soft: #7f8c99; }
+.reader[data-rtheme="midnight"]    { --page-bg: #0a0e1a; --page-ink: #c3cee0; --page-soft: #6b7791; }
+.reader[data-rtheme="mocha"]       { --page-bg: #241c17; --page-ink: #e6d8c8; --page-soft: #9e8c79; }
+.reader[data-rtheme="nord"]        { --page-bg: #2e3440; --page-ink: #d8dee9; --page-soft: #81a1c1; }
+.reader[data-rtheme="dracula"]     { --page-bg: #282a36; --page-ink: #f8f8f2; --page-soft: #bd93f9; }
+.reader[data-rtheme="solar-dark"]  { --page-bg: #002b36; --page-ink: #93a1a1; --page-soft: #586e75; }
+.reader[data-rtheme="plum"]        { --page-bg: #211a2e; --page-ink: #ded3ec; --page-soft: #9484ad; }
+/* "custom" reads its colours from inline vars set by JS (applyReaderPrefs). */
+
+/* custom-colour panel in the reader bar */
+.reader-bar #btn-custom-theme.active { background: var(--accent); border-color: var(--accent); }
+.custom-theme { flex-basis: 100%; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: .82rem; }
+.custom-theme.hidden { display: none; }
+.custom-theme label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.custom-theme input[type="color"] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border);
+  border-radius: 6px; background: none; cursor: pointer; }
+.cc-warn { color: #e6a23c; }
+
+.reader-bar {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; background: var(--panel2); border-bottom: 1px solid var(--border);
+}
+.reader-bar .seg { display: inline-flex; gap: 4px; align-items: center; }
+.reader-bar button {
+  background: transparent; border: 1px solid transparent; border-radius: 7px;
+  padding: 5px 10px; font-size: .95rem; line-height: 1; color: var(--ink);
+}
+.reader-bar button:hover:not(:disabled) { border-color: var(--border); }
+.reader-bar button:disabled { opacity: .4; cursor: not-allowed; }
+.reader-bar .rt.active { background: var(--accent); border-color: var(--accent); }
+.reader-bar select {
+  width: auto; margin: 0; padding: 5px 8px; font-size: .88rem;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 7px; color: var(--ink);
+}
+
+/* Reader font families — all system fonts, so nothing is fetched from the internet. */
+.reader[data-rfont="serif"]    .prose, .reader[data-rfont="serif"]    .reader-chtitle { font-family: Georgia, "Iowan Old Style", Palatino, "Times New Roman", serif; }
+.reader[data-rfont="sans"]     .prose, .reader[data-rfont="sans"]     .reader-chtitle { font-family: "Segoe UI", system-ui, Arial, sans-serif; }
+.reader[data-rfont="palatino"] .prose, .reader[data-rfont="palatino"] .reader-chtitle { font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; }
+.reader[data-rfont="easy"]     .prose, .reader[data-rfont="easy"]     .reader-chtitle { font-family: "Comic Sans MS", "Segoe Print", "Trebuchet MS", sans-serif; }
+
+/* Bundled free Google Fonts (loaded locally from fonts.css — still no internet). */
+.reader[data-rfont="literata"]          .prose, .reader[data-rfont="literata"]          .reader-chtitle { font-family: "Literata", Georgia, serif; }
+.reader[data-rfont="lora"]              .prose, .reader[data-rfont="lora"]              .reader-chtitle { font-family: "Lora", Georgia, serif; }
+.reader[data-rfont="merriweather"]      .prose, .reader[data-rfont="merriweather"]      .reader-chtitle { font-family: "Merriweather", Georgia, serif; }
+.reader[data-rfont="eb-garamond"]       .prose, .reader[data-rfont="eb-garamond"]       .reader-chtitle { font-family: "EB Garamond", Georgia, serif; }
+.reader[data-rfont="bitter"]            .prose, .reader[data-rfont="bitter"]            .reader-chtitle { font-family: "Bitter", Georgia, serif; }
+.reader[data-rfont="source-serif"]      .prose, .reader[data-rfont="source-serif"]      .reader-chtitle { font-family: "Source Serif 4", Georgia, serif; }
+.reader[data-rfont="pt-serif"]          .prose, .reader[data-rfont="pt-serif"]          .reader-chtitle { font-family: "PT Serif", Georgia, serif; }
+.reader[data-rfont="libre-baskerville"] .prose, .reader[data-rfont="libre-baskerville"] .reader-chtitle { font-family: "Libre Baskerville", Georgia, serif; }
+.reader[data-rfont="crimson"]           .prose, .reader[data-rfont="crimson"]           .reader-chtitle { font-family: "Crimson Pro", Georgia, serif; }
+.reader[data-rfont="vollkorn"]          .prose, .reader[data-rfont="vollkorn"]          .reader-chtitle { font-family: "Vollkorn", Georgia, serif; }
+.reader[data-rfont="spectral"]          .prose, .reader[data-rfont="spectral"]          .reader-chtitle { font-family: "Spectral", Georgia, serif; }
+.reader[data-rfont="alegreya"]          .prose, .reader[data-rfont="alegreya"]          .reader-chtitle { font-family: "Alegreya", Georgia, serif; }
+.reader[data-rfont="noto-serif"]        .prose, .reader[data-rfont="noto-serif"]        .reader-chtitle { font-family: "Noto Serif", Georgia, serif; }
+.reader[data-rfont="inter"]             .prose, .reader[data-rfont="inter"]             .reader-chtitle { font-family: "Inter", "Segoe UI", sans-serif; }
+.reader[data-rfont="open-sans"]         .prose, .reader[data-rfont="open-sans"]         .reader-chtitle { font-family: "Open Sans", "Segoe UI", sans-serif; }
+.reader[data-rfont="atkinson"]          .prose, .reader[data-rfont="atkinson"]          .reader-chtitle { font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif; }
+.reader[data-rfont="lexend"]            .prose, .reader[data-rfont="lexend"]            .reader-chtitle { font-family: "Lexend", "Segoe UI", sans-serif; }
+
+.reader-page {
+  background: var(--page-bg); color: var(--page-ink);
+  padding: 40px 24px 56px; transition: background .2s, color .2s; min-height: 320px;
+}
+.reader-chnum { text-align: center; letter-spacing: .18em; text-transform: uppercase;
+  font-size: .72rem; color: var(--page-soft); margin-bottom: 6px; }
+.reader-chtitle {
+  text-align: center; font-family: Georgia, "Iowan Old Style", Palatino, serif;
+  font-weight: 600; margin: 0 auto 12px; max-width: 34em; color: var(--page-ink);
+}
+/* a small printer's ornament between the title and the prose — an old-book touch */
+.reader-chtitle:not(:empty)::after {
+  content: "❧"; display: block; font-size: .72em; font-weight: 400;
+  color: var(--page-soft); margin-top: 14px; line-height: 1;
+}
+.reader-chtitle:not(:empty) { margin-bottom: 26px; }
+/* the quiet mark that closes every finished chapter */
+.end-mark { text-align: center; color: var(--page-soft); font-size: 1.05rem;
+  margin: 34px 0 0; letter-spacing: .5em; padding-left: .5em; user-select: none; }
+.prose {
+  font-family: Georgia, "Iowan Old Style", Palatino, "Times New Roman", serif;
+  font-size: var(--reader-fs); line-height: 1.85; max-width: 36em; margin: 0 auto;
+  text-align: left; hyphens: none; overflow-wrap: break-word;
+}
+.prose p { margin: 0 0 1.1em; }
+/* gentle drop-cap on the opening paragraph — only when JS added .dropcap (i.e. it starts on a
+   letter, never on a quote/dash/number which would float a giant punctuation mark) */
+.prose.dropcap p:first-of-type::first-letter {
+  font-size: 3.1em; line-height: .8; float: left; padding: 4px 8px 0 0;
+  font-weight: 600; color: var(--page-ink);
+}
+.prose.streaming { white-space: pre-wrap; text-align: left; }
+.prose.streaming p:first-of-type::first-letter { font-size: inherit; float: none; padding: 0; }
+/* "Characters & world" / "Story bible" — proper cards with a clean clickable header */
+.biblebox { margin-top: 16px; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--shadow-soft); overflow: hidden; }
+.biblebox > summary { list-style: none; padding: 14px 18px; font-weight: 600; color: var(--ink);
+  cursor: pointer; display: flex; align-items: center; gap: 10px; user-select: none; }
+.biblebox > summary::-webkit-details-marker { display: none; }
+.biblebox > summary::before { content: ""; width: 7px; height: 7px; flex: none; margin-top: -2px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg); transition: transform .15s ease; }
+.biblebox[open] > summary::before { transform: rotate(45deg); }
+.biblebox > summary:hover { color: var(--accent2); }
+.biblebox[open] > summary { border-bottom: 1px solid var(--border); }
+.biblebox > :not(summary) { margin: 0 18px 16px; }
+.biblebox pre { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; overflow: auto; font-size: .8rem; color: var(--muted); max-height: 360px;
+  margin-top: 12px; }
+
+/* 👥 Characters & world panel */
+.cast-content { padding: 6px 2px; }
+.cast-content h4 { margin: 16px 0 6px; }
+.cast-content p { margin: 0 0 8px; color: var(--muted); line-height: 1.5; }
+.cast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.cast-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.cast-card > div { margin-top: 4px; font-size: .85rem; color: var(--muted); line-height: 1.45; }
+.state-sheet { white-space: pre-wrap; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; font-size: .8rem; color: var(--muted); max-height: 320px; overflow: auto; }
+
+/* ✏️ in-place chapter editor */
+.edit-panel { background: var(--panel); border-top: 1px solid var(--border); padding: 16px 20px; }
+.edit-panel.hidden { display: none; }
+.edit-title { width: 100%; margin-bottom: 10px; padding: 8px 10px; font-size: 1rem;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; color: inherit; }
+.edit-title.hidden { display: none; }
+.edit-area { width: 100%; min-height: 50vh; resize: vertical; padding: 14px 16px; line-height: 1.7;
+  font-family: Georgia, "Iowan Old Style", serif; font-size: 1.02rem;
+  background: var(--page-bg, #faf9f7); color: var(--page-ink, #25221e);
+  border: 1px solid var(--border); border-radius: 10px; }
+.edit-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.edit-actions .gen-status { flex: 1; }
+
+/* reader footer + feedback */
+.reader-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 14px; background: var(--panel2); border-top: 1px solid var(--border); flex-wrap: wrap; }
+.reader-foot .foot-btns { display: inline-flex; gap: 8px; }
+.feedback-panel { background: var(--panel); border-top: 1px solid var(--border); padding: 16px 20px; }
+.feedback-panel h3 { margin: 0 0 12px; }
+.fb-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; flex-wrap: wrap; }
+.fb-label { width: 110px; color: var(--muted); font-size: .9rem; }
+.fb-opts { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.fb-opts button { padding: 5px 12px; border-radius: 20px; font-size: .85rem; background: var(--panel2); }
+.fb-opts button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fb-group { margin: 16px 0 4px; font-size: .95rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.fb-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+#taste-confidence { font-size: .82rem; }
+
+/* feedback redesign: head + pill tabs + panes */
+.fb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fb-head h3 { margin: 0 0 10px; }
+.fb-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.fb-tab { background: var(--panel2); border: 1px solid var(--border); border-radius: 20px;
+  padding: 7px 15px; color: var(--muted); font-size: .88rem; }
+.fb-tab:hover { color: inherit; border-color: var(--accent); }
+.fb-tab.active { color: var(--accent2); font-weight: 600; border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.fb-pane { display: block; }
+.fb-pane.hidden { display: none; }
+.fb-pane label { display: block; margin: 12px 0; }
+/* the Likes & dislikes pane reads better in two columns */
+.fb-pane[data-pane="likes"] { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.fb-pane[data-pane="likes"] .fb-group, .fb-pane[data-pane="likes"] > label:last-of-type { grid-column: 1 / -1; }
+@media (max-width: 640px) { .fb-pane[data-pane="likes"] { grid-template-columns: 1fr; } }
+
+/* 5-level overall faces */
+.fb-overall { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 6px; }
+.fb-ov { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px;
+  padding: 8px 6px; border-radius: 12px; background: var(--panel2); font-size: 1.5rem; line-height: 1;
+  transition: transform .12s ease, background-color .15s ease; }
+.fb-ov:hover { transform: scale(1.08); }
+.fb-ov small { font-size: .7rem; color: var(--muted); }
+.fb-ov.active { background: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+.fb-ov.active small { color: #fff; }
+
+/* craft dials — 5 segmented buttons (no sliders) */
+.fb-cgroup { margin: 10px 0 4px; }
+.fb-cgroup h5 { margin: 16px 0 8px; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent2); }
+.fb-dial { margin: 12px 0; }
+.fb-dial-name { font-size: .9rem; margin-bottom: 5px; }
+.fb-scale { display: flex; gap: 0; flex-wrap: nowrap; width: 100%; }
+.fb-scale button { flex: 1; min-width: 0; padding: 7px 6px; font-size: .78rem; line-height: 1.15;
+  border-radius: 0; border-left-width: 0; background: var(--panel2); color: var(--muted); }
+.fb-scale button:first-child { border-left-width: 1px; border-radius: 8px 0 0 8px; }
+.fb-scale button:last-child { border-radius: 0 8px 8px 0; }
+.fb-scale button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fb-scale.changed button.active { box-shadow: 0 0 0 1px var(--accent) inset; }
+@media (max-width: 560px) { .fb-scale button { font-size: .7rem; padding: 6px 3px; } }
+
+.blink::after { content: "▍"; animation: blink 1s steps(2) infinite; color: var(--accent); }
+@keyframes blink { 50% { opacity: 0; } }
+
+@media (max-width: 820px) {
+  .grid2, .workspace { grid-template-columns: 1fr; }
+  /* stacked layout: don't cap the sidebar to the viewport */
+  .sidebar { position: static; max-height: none; overflow: visible; display: block; }
+}
